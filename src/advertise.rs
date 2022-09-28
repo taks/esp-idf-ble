@@ -1,6 +1,12 @@
 use crate::BtUuid;
 use esp_idf_sys::*;
 
+#[cfg(not(feature = "std"))]
+use core::{option::Option, option::Option::*};
+
+#[cfg(not(feature = "std"))]
+use alloc::{vec::Vec, string::String};
+
 #[allow(clippy::upper_case_acronyms)]
 #[repr(u16)]
 #[derive(Clone, Debug)]

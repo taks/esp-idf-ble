@@ -1,3 +1,6 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![feature(alloc_c_string)]
+
 mod advertise;
 mod gap;
 mod gatt;
@@ -5,7 +8,22 @@ mod gatt_client;
 mod gatt_server;
 mod security;
 
+#[cfg(not(feature = "std"))]
+#[allow(unused_imports)]
+#[macro_use]
+extern crate alloc;
+
+#[cfg(feature = "std")]
 use std::{collections::HashMap, ffi::CString, sync::Arc};
+
+#[cfg(not(feature = "std"))]
+use core::{option::Option, option::Option::*, result::Result, result::Result::*, marker::Send, ops::Fn};
+
+#[cfg(not(feature = "std"))]
+use alloc::{boxed::Box, sync::Arc, vec::Vec, ffi::CString, string::String};
+
+#[cfg(not(feature = "std"))]
+use hashbrown::HashMap;
 
 use ::log::*;
 use advertise::RawAdvertiseData;
@@ -473,14 +491,14 @@ impl EspBle {
             manufacturer_len,
             p_manufacturer_data: data
                 .manufacturer
-                .map_or(std::ptr::null_mut(), |mut m| m.as_mut_ptr()),
+                .map_or(core::ptr::null_mut(), |mut m| m.as_mut_ptr()),
             service_data_len,
             p_service_data: data
                 .service
-                .map_or(std::ptr::null_mut(), |mut s| s.as_mut_ptr()),
+                .map_or(core::ptr::null_mut(), |mut s| s.as_mut_ptr()),
             service_uuid_len: svc_uuid_len,
             p_service_uuid: if svc_uuid_len == 0 {
-                std::ptr::null_mut()
+                core::ptr::null_mut()
             } else {
                 let ptr = svc_uuid.uuid.as_mut_ptr();
                 unsafe {
@@ -569,7 +587,7 @@ impl EspBle {
 
     pub fn read_attribute_value(&self, attr_handle: u16) -> Result<Vec<u8>, EspError> {
         let mut len: u16 = 0;
-        let mut data: *const u8 = std::ptr::null_mut();
+        let mut data: *const u8 = core::ptr::null_mut();
 
         unsafe {
             esp!(esp_ble_gatts_get_attr_value(
@@ -578,7 +596,7 @@ impl EspBle {
                 &mut data
             ))?;
 
-            let data = std::slice::from_raw_parts(data, len as usize);
+            let data = core::slice::from_raw_parts(data, len as usize);
             info!("len: {:?}, data: {:p}", len, data);
             Ok(data.to_vec())
         }
@@ -624,8 +642,8 @@ impl EspBle {
                 svc_handle,
                 &mut uuid,
                 char_desc.permissions,
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
+                core::ptr::null_mut(),
+                core::ptr::null_mut(),
             )
         })
     }
@@ -659,7 +677,7 @@ impl EspBle {
             esp_ble_gap_set_security_param(
                 esp_ble_sm_param_t_ESP_BLE_SM_AUTHEN_REQ_MODE,
                 &mut config.auth_req_mode as *mut _ as *mut c_void,
-                std::mem::size_of::<u8>() as _,
+                core::mem::size_of::<u8>() as _,
             )
         })
         .expect("auth req mode");
@@ -668,7 +686,7 @@ impl EspBle {
             esp_ble_gap_set_security_param(
                 esp_ble_sm_param_t_ESP_BLE_SM_IOCAP_MODE,
                 &mut config.io_capabilities as *mut _ as *mut c_void,
-                std::mem::size_of::<u8>() as _,
+                core::mem::size_of::<u8>() as _,
             )
         })
         .expect("sm iocap mode");
@@ -678,7 +696,7 @@ impl EspBle {
                 esp_ble_gap_set_security_param(
                     esp_ble_sm_param_t_ESP_BLE_SM_SET_INIT_KEY,
                     &mut initiator_key as *mut _ as *mut c_void,
-                    std::mem::size_of::<u8>() as _,
+                    core::mem::size_of::<u8>() as _,
                 )
             })
             .expect("initiator_key");
@@ -689,7 +707,7 @@ impl EspBle {
                 esp_ble_gap_set_security_param(
                     esp_ble_sm_param_t_ESP_BLE_SM_SET_RSP_KEY,
                     &mut responder_key as *mut _ as *mut c_void,
-                    std::mem::size_of::<u8>() as _,
+                    core::mem::size_of::<u8>() as _,
                 )
             })
             .expect("responder_key");
@@ -699,7 +717,7 @@ impl EspBle {
                 esp_ble_gap_set_security_param(
                     esp_ble_sm_param_t_ESP_BLE_SM_MAX_KEY_SIZE,
                     &mut max_key_size as *mut _ as *mut c_void,
-                    std::mem::size_of::<u8>() as _,
+                    core::mem::size_of::<u8>() as _,
                 )
             })
             .expect("max key size");
@@ -709,7 +727,7 @@ impl EspBle {
                 esp_ble_gap_set_security_param(
                     esp_ble_sm_param_t_ESP_BLE_SM_MIN_KEY_SIZE,
                     &mut min_key_size as *mut _ as *mut c_void,
-                    std::mem::size_of::<u8>() as _,
+                    core::mem::size_of::<u8>() as _,
                 )
             })
             .expect("min key size");
@@ -720,7 +738,7 @@ impl EspBle {
                 esp_ble_gap_set_security_param(
                     esp_ble_sm_param_t_ESP_BLE_SM_SET_STATIC_PASSKEY,
                     &mut passkey as *mut _ as *mut c_void,
-                    std::mem::size_of::<u32>() as _,
+                    core::mem::size_of::<u32>() as _,
                 )
             })
             .expect("set static passkey");
@@ -730,7 +748,7 @@ impl EspBle {
             esp_ble_gap_set_security_param(
                 esp_ble_sm_param_t_ESP_BLE_SM_ONLY_ACCEPT_SPECIFIED_SEC_AUTH,
                 &mut only_accept_specified_auth as *mut _ as *mut c_void,
-                std::mem::size_of::<u8>() as _,
+                core::mem::size_of::<u8>() as _,
             )
         })
         .expect("only accept spec auth");
@@ -739,7 +757,7 @@ impl EspBle {
             esp_ble_gap_set_security_param(
                 esp_ble_sm_param_t_ESP_BLE_SM_OOB_SUPPORT,
                 &mut enable_oob as *mut _ as *mut c_void,
-                std::mem::size_of::<u8>() as _,
+                core::mem::size_of::<u8>() as _,
             )
         })
         .expect("oob support");

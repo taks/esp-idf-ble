@@ -58,8 +58,8 @@ pub enum GattServiceEvent {
     SendServiceChangeComplete(esp_ble_gatts_cb_param_t_gatts_send_service_change_evt_param),
 }
 
-impl std::fmt::Debug for GattServiceEvent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+impl core::fmt::Debug for GattServiceEvent {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
         match self {
             GattServiceEvent::Register(reg) => write!(
                 f,

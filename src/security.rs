@@ -1,4 +1,7 @@
-use std::ops::BitOr;
+use core::ops::BitOr;
+
+#[cfg(not(feature = "std"))]
+use core::{option::Option, convert::From};
 
 #[derive(Default)]
 #[repr(u8)]

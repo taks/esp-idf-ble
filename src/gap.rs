@@ -75,8 +75,8 @@ pub enum GapEvent {
     */
 }
 
-impl std::fmt::Debug for GapEvent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+impl core::fmt::Debug for GapEvent {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
         write!(
             f,
             "{}",
